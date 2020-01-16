@@ -1,0 +1,5 @@
+Language = ENG
+Logs = ON
+SQLInsertMethod = CLASSIC
+
+
