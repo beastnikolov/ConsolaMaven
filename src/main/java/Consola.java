@@ -22,16 +22,21 @@ public class Consola {
     private File auxDirectori;
     private boolean logActive; //Log activo o inactivo
     private Connector con = new Connector();
-    private Log log = new Log(con);
     private int contadorLogs = 0; // Variable usada para la inserción de logs en modo bloque, al tener X se ejecuta el preparedStatement
+    private log log;
+    private Session _session;
+    private LogActivities logActivities;
+
 
 
 
     private void init() { // Inicializa el programa
         con.conectarSQL();
-        readConfig();
         literalsHib.initLiteralDB();
         literalsHib.updateResultSet(language);
+        this._session = literalsHib.getLogSession();
+        logActivities = new LogActivities(this._session);
+        readConfig();
         setLog(logActive);
         currentDir = new File("");
         currentDir = new File(currentDir.getAbsolutePath());
@@ -40,7 +45,7 @@ public class Consola {
 
         System.err.println("Consola Nikolov v1.0");
         while (ultimaEntrada != Entrada.TipusEntrada.EXIT) {
-            log.setContLogs(contadorLogs);
+            //log.setContLogs(contadorLogs);
             System.out.println(">> " + currentDir.getAbsolutePath());
             if (comanda.equals("")) {
                 escrito = input.cadena();
@@ -66,25 +71,23 @@ public class Consola {
                         directoriAnterior = currentDir;
                         currentDir = auxDirectori;
                      } else {
-                         //con.getMessageDB(language,"DIR_NOTFOUND");
                          literalsHib.getLiteralDB("DIR_NOTFOUND");
                      }
                      contadorLogs++;
-                     log.addLogtoArray("GOTO | " + tractarTexteEntrada.obtenirParametres()[0]);
-                     log.writeLog("GOTO",tractarTexteEntrada.obtenirParametres()[0]);
+                     //log.addLogtoArray("GOTO | " + tractarTexteEntrada.obtenirParametres()[0]);s
+                     logActivities.writeLog("GOTO",tractarTexteEntrada.obtenirParametres()[0]);
                      break;
                  case GOLAST:
                      auxDirectori = new File(currentDir.getAbsolutePath());
                      currentDir = directoriAnterior;
                      directoriAnterior = currentDir;
                      contadorLogs++;
-                     log.addLogtoArray("GOLAST");
-                     log.writeLog("GOLAST","");
+                     //log.addLogtoArray("GOLAST");
+                     logActivities.writeLog("GOLAST","");
                      break;
                  case LIST:
                     String[] listaDirectorios = currentDir.list();
                     if (listaDirectorios.length == 0) {
-                       // con.getMessageDB(language,"DIR_EMPTY");
                         literalsHib.getLiteralDB("DIR_EMPTY");
                     } else {
                         for (int i = 0; i < listaDirectorios.length; i++) {
@@ -96,14 +99,14 @@ public class Consola {
                         }
                     }
                      contadorLogs++;
-                     log.addLogtoArray("GOLAST");
-                    log.writeLog("LIST","");
+                    //log.addLogtoArray("GOLAST");
+                     logActivities.writeLog("LIST","");
                     break;
                  case HELP:
                      helpCommand();
                      contadorLogs++;
-                     log.addLogtoArray("HELP" );
-                     log.writeLog("HELP","");
+                     //log.addLogtoArray("HELP" );
+                     logActivities.writeLog("HELP","");
                      break;
                  case EXIT:
                      con.commitChanges();
@@ -114,22 +117,21 @@ public class Consola {
                      break;
                  case LOG0:
                      if (logActive) {
-                         log.setLogActive(false);
+                         logActivities.setLogActive(false);
                          logActive = false;
-                         con.getMessageDB(language,"LOG_OFF");
+                         literalsHib.getLiteralDB("LOG_OFF");
                      }
                      break;
                  case LOG1:
                      if (!logActive) {
-                         log.setLogActive(true);
+                         logActivities.setLogActive(true);
                          logActive = true;
-                         con.getMessageDB(language,"LOG_ON");
+                         literalsHib.getLiteralDB("LOG_ON");
                      }
                      break;
                  case CLEARLOG:
                      con.rollbackChanges();
-                     log.clearLog();
-                     //con.getMessageDB(language,"LOG_CLEANED");
+                     logActivities.clearLog();
                      literalsHib.getLiteralDB("LOG_CLEANED");
                      con.commitChanges();
                      break;
@@ -141,8 +143,8 @@ public class Consola {
                          mensaje = mensaje + " " + arrayPalabras[i];
                      }
                      contadorLogs++;
-                     log.addLogtoArray("CUSTOMLOG | " + mensaje);
-                     log.writeLog("CUSTOMLOG",mensaje);
+                     //log.addLogtoArray("CUSTOMLOG | " + mensaje);
+                     logActivities.writeLog("CUSTOMLOG",mensaje);
                      break;
                  case LOAD:
                      break;
@@ -152,7 +154,7 @@ public class Consola {
     }
 
     public void setLog(boolean state) { //Activa o desactiva la escritura de logs
-        log.setLogActive(state);
+        logActivities.setLogActive(state);
     }
 
     private void readConfig() { //Función para leer la configuración de la consola (config.txt) y asignarle los valores a cada variable
@@ -173,8 +175,7 @@ public class Consola {
                         logActive = false;
                     }
                 } else if (cont == 2){
-                    log.setInsertMethod(config[2]);
-                    System.out.println("");
+                    logActivities.setInsertMethod(config[2]);
                 }
                 cont++;
             }

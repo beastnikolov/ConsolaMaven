@@ -27,4 +27,9 @@ public class LiteralsHib {
             }
         }
 
+
+    public Session getLogSession() {
+        return _session;
+    }
+
 }
