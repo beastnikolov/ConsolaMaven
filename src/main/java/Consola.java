@@ -17,6 +17,7 @@ public class Consola {
     private Entrada.TipusEntrada ultimaEntrada = null;
     private File directoriAnterior = new File("");
     private File configPath = new File("src\\main\\java\\config.txt"); //Configuración del programa
+    private LiteralsHib literalsHib = new LiteralsHib(); //Clase para los literales de Hibernate
     private String language; //Lenguaje del programa
     private File auxDirectori;
     private boolean logActive; //Log activo o inactivo
@@ -29,6 +30,8 @@ public class Consola {
     private void init() { // Inicializa el programa
         con.conectarSQL();
         readConfig();
+        literalsHib.initLiteralDB();
+        literalsHib.updateResultSet(language);
         setLog(logActive);
         currentDir = new File("");
         currentDir = new File(currentDir.getAbsolutePath());
@@ -36,7 +39,6 @@ public class Consola {
         String comanda = "";
 
         System.err.println("Consola Nikolov v1.0");
-        testHibernate();
         while (ultimaEntrada != Entrada.TipusEntrada.EXIT) {
             log.setContLogs(contadorLogs);
             System.out.println(">> " + currentDir.getAbsolutePath());
@@ -64,7 +66,8 @@ public class Consola {
                         directoriAnterior = currentDir;
                         currentDir = auxDirectori;
                      } else {
-                         con.getMessageDB(language,"DIR_NOTFOUND");
+                         //con.getMessageDB(language,"DIR_NOTFOUND");
+                         literalsHib.getLiteralDB("DIR_NOTFOUND");
                      }
                      contadorLogs++;
                      log.addLogtoArray("GOTO | " + tractarTexteEntrada.obtenirParametres()[0]);
@@ -81,7 +84,8 @@ public class Consola {
                  case LIST:
                     String[] listaDirectorios = currentDir.list();
                     if (listaDirectorios.length == 0) {
-                        con.getMessageDB(language,"DIR_EMPTY");
+                       // con.getMessageDB(language,"DIR_EMPTY");
+                        literalsHib.getLiteralDB("DIR_EMPTY");
                     } else {
                         for (int i = 0; i < listaDirectorios.length; i++) {
                             if(currentDir.listFiles()[i].isDirectory()) {
@@ -125,7 +129,8 @@ public class Consola {
                  case CLEARLOG:
                      con.rollbackChanges();
                      log.clearLog();
-                     con.getMessageDB(language,"LOG_CLEANED");
+                     //con.getMessageDB(language,"LOG_CLEANED");
+                     literalsHib.getLiteralDB("LOG_CLEANED");
                      con.commitChanges();
                      break;
                  case LOG:
@@ -143,16 +148,6 @@ public class Consola {
                      break;
              }
         }
-
-    }
-
-    private void testHibernate() {
-        String idiomaQuery;
-        idiomaQuery = "es";
-        Session _session = HibernateUtil.getSessionFactory().openSession();
-        List<idioma> result = (List<idioma>)_session.createQuery("from idioma where idi_cod = '" + idiomaQuery + "'").list();
-
-        Integer numRes = result.size();
 
     }
 
