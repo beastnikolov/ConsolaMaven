@@ -3,6 +3,7 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.List;
+import java.util.logging.Level;
 
 import org.hibernate.query.Query;
 import org.hibernate.Session;
@@ -21,8 +22,8 @@ public class Consola {
     private String language; //Lenguaje del programa
     private File auxDirectori;
     private boolean logActive; //Log activo o inactivo
-    private Connector con = new Connector();
     private int contadorLogs = 0; // Variable usada para la inserción de logs en modo bloque, al tener X se ejecuta el preparedStatement
+    private int maxLongitudArrayLogs;
     private log log;
     private Session _session;
     private LogActivities logActivities;
@@ -31,12 +32,12 @@ public class Consola {
 
 
     private void init() { // Inicializa el programa
-        con.conectarSQL();
+        java.util.logging.Logger.getLogger("org.hibernate").setLevel(Level.OFF);
         literalsHib.initLiteralDB();
-        literalsHib.updateResultSet(language);
         this._session = literalsHib.getLogSession();
         logActivities = new LogActivities(this._session);
         readConfig();
+        literalsHib.updateResultSet(language);
         setLog(logActive);
         currentDir = new File("");
         currentDir = new File(currentDir.getAbsolutePath());
@@ -45,7 +46,11 @@ public class Consola {
 
         System.err.println("Consola Nikolov v1.0");
         while (ultimaEntrada != Entrada.TipusEntrada.EXIT) {
-            //log.setContLogs(contadorLogs);
+            logActivities.setContLogs(contadorLogs);
+            if (contadorLogs >= maxLongitudArrayLogs) {
+                logActivities.writeLogBLOCK();
+                contadorLogs = 0;
+            }
             System.out.println(">> " + currentDir.getAbsolutePath());
             if (comanda.equals("")) {
                 escrito = input.cadena();
@@ -74,7 +79,7 @@ public class Consola {
                          literalsHib.getLiteralDB("DIR_NOTFOUND");
                      }
                      contadorLogs++;
-                     //log.addLogtoArray("GOTO | " + tractarTexteEntrada.obtenirParametres()[0]);s
+                     logActivities.addLogtoArray("GOTO | " + tractarTexteEntrada.obtenirParametres()[0]);
                      logActivities.writeLog("GOTO",tractarTexteEntrada.obtenirParametres()[0]);
                      break;
                  case GOLAST:
@@ -82,7 +87,7 @@ public class Consola {
                      currentDir = directoriAnterior;
                      directoriAnterior = currentDir;
                      contadorLogs++;
-                     //log.addLogtoArray("GOLAST");
+                     logActivities.addLogtoArray("GOLAST");
                      logActivities.writeLog("GOLAST","");
                      break;
                  case LIST:
@@ -99,20 +104,18 @@ public class Consola {
                         }
                     }
                      contadorLogs++;
-                    //log.addLogtoArray("GOLAST");
+                     logActivities.addLogtoArray("GOLAST");
                      logActivities.writeLog("LIST","");
                     break;
                  case HELP:
                      helpCommand();
                      contadorLogs++;
-                     //log.addLogtoArray("HELP" );
+                     logActivities.addLogtoArray("HELP" );
                      logActivities.writeLog("HELP","");
                      break;
                  case EXIT:
-                     con.commitChanges();
                      contadorLogs++;
-                     con.getMessageDB(language,"EXIT");
-                     con.closeConnection();
+                     literalsHib.getLiteralDB("EXIT");
                      System.exit(0);
                      break;
                  case LOG0:
@@ -130,10 +133,8 @@ public class Consola {
                      }
                      break;
                  case CLEARLOG:
-                     con.rollbackChanges();
                      logActivities.clearLog();
                      literalsHib.getLiteralDB("LOG_CLEANED");
-                     con.commitChanges();
                      break;
                  case LOG:
                      String mensaje = "";
@@ -143,7 +144,7 @@ public class Consola {
                          mensaje = mensaje + " " + arrayPalabras[i];
                      }
                      contadorLogs++;
-                     //log.addLogtoArray("CUSTOMLOG | " + mensaje);
+                     logActivities.addLogtoArray("CUSTOMLOG | " + mensaje);
                      logActivities.writeLog("CUSTOMLOG",mensaje);
                      break;
                  case LOAD:
@@ -176,6 +177,8 @@ public class Consola {
                     }
                 } else if (cont == 2){
                     logActivities.setInsertMethod(config[2]);
+                } else if (cont == 3) {
+                    maxLongitudArrayLogs = Integer.parseInt(config[2]);
                 }
                 cont++;
             }
@@ -207,5 +210,7 @@ public class Consola {
         Consola consola = new Consola();
         consola.init();
     }
+
+
 
 }

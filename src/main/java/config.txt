@@ -1,5 +1,6 @@
 Language = ENG
 Logs = ON
-SQLInsertMethod = CLASSIC
+SQLInsertMethod = BLOCKS
+BlockInsertSIZE = 2
 
 

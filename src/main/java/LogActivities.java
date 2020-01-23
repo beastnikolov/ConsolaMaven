@@ -4,11 +4,14 @@ import sun.rmi.runtime.Log;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.ArrayList;
 
 public class LogActivities {
     private Session _session;
     private boolean logActive;
     private String insertMethod = "";
+    private int contLogs = 0;
+    private ArrayList<String > logArray = new ArrayList<>();
 
     public LogActivities(Session _session) {
         this._session = _session;
@@ -24,20 +27,23 @@ public class LogActivities {
             _session.getTransaction().commit();
             _session.clear();
 
-        } //else if (contLogs > 5){ //Si lo hemos puesto por bloques en la configuración mete los logs de par en par
-            /*PreparedStatement pSt = con.getPreparedStatement();
-            for (int i = 0; i < logArray.size(); i++) {
-                try {
-                    pSt.setString(1,logArray.get(i));
-                    pSt.executeUpdate();
-                } catch (SQLException e) {
-                    e.printStackTrace();
-                }
-            }
-            System.out.println("Se han insertado " + logArray.size() + " logs.");
-            logArray.clear();
+        }
+    }
 
-             */
+    public void writeLogBLOCK() {
+        for (int i = 0; i < logArray.size(); i++) {
+            log log = new log();
+            log.setLog_texte(logArray.get(i));
+            log.setLog_data(new java.sql.Date(System.currentTimeMillis()));
+            _session.beginTransaction();
+            _session.save(log);
+            _session.flush();
+            _session.evict(log);
+            _session.getTransaction().commit();
+            _session.clear();
+        }
+        System.err.println("Se han insertado " + logArray.size() + " logs.");
+        logArray.clear();
     }
 
     public void clearLog() {
@@ -61,5 +67,13 @@ public class LogActivities {
 
     public void setInsertMethod(String insertMethod) {
         this.insertMethod = insertMethod;
+    }
+
+    public void setContLogs(int contLogs) { //Contador de número de logs que se insertarán
+        this.contLogs = contLogs;
+    }
+
+    public void addLogtoArray(String logMessage) { //Añade los mensajes de los logs a un array que después se utilizará para la inserción de logs en bloque
+        logArray.add(logMessage);
     }
 }
