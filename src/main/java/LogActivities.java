@@ -18,7 +18,7 @@ public class LogActivities {
     }
 
     public void writeLog(String comando, String parametros) { //Escribe logs a la base de datos
-        if (logActive && insertMethod.equals("CLASSIC")) { //Lee el archivo de configuración, si está en CLASSIC las inserta con un statement normal, si no hace un commit cada X logs
+        if (logActive && insertMethod.equals("CLASSIC")) { //Lee el archivo de configuración, si está en CLASSIC las inserta con cada comando ejecutado
             log log = new log();
             log.setLog_texte(comando + " - " + parametros);
             log.setLog_data(new java.sql.Date(System.currentTimeMillis()));
@@ -30,7 +30,7 @@ public class LogActivities {
         }
     }
 
-    public void writeLogBLOCK() {
+    public void writeLogBLOCK() { // Si el método de inserción está puesto en bloques, inserta un bloque entero de logs configurado desde el fichero config.txt con un array que se carga con los logs a guardar
         for (int i = 0; i < logArray.size(); i++) {
             log log = new log();
             log.setLog_texte(logArray.get(i));
@@ -46,7 +46,7 @@ public class LogActivities {
         logArray.clear();
     }
 
-    public void clearLog() {
+    public void clearLog() { // Limpia los logs de la tabla logs
         _session.beginTransaction();
         _session.createSQLQuery("truncate table log").executeUpdate();
         _session.getTransaction().commit();

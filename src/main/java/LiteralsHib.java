@@ -14,11 +14,11 @@ public class LiteralsHib {
             _session = HibernateUtil.getSessionFactory().openSession();
         }
 
-        public void updateResultSet(String currentLanguage) {
+        public void updateResultSet(String currentLanguage) { //Carga todos los literales posibles como objtos dentro de una lista desde la base de datos
         result = (List<literal>)_session.createQuery("from literal where idi_cod = '" + currentLanguage + "'").list();
         }
 
-        public void getLiteralDB(String messageCode) {
+        public void getLiteralDB(String messageCode) { //Enseña por consola el literal específicado
         for (literal l: result) {
             if (messageCode.equalsIgnoreCase(l.getLit_clau())) {
                 System.err.println(l.getLit_text());

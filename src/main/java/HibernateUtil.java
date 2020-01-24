@@ -18,7 +18,7 @@ public class HibernateUtil {
     static {
         try {
             // Create the SessionFactory from hibernate.cfg.xml
-            sessionFactory = new Configuration().configure(new File("hibernate.cfg.xml"))
+            sessionFactory = new Configuration().configure(new File("hibernate.cfg.xml")) // Carga la configuración de Hibernate desde hibernate.cfg.xml
                     .buildSessionFactory();
         } catch (Throwable ex) {
             // Make sure you log the exception, as it might be swallowed

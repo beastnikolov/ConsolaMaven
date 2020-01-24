@@ -32,11 +32,11 @@ public class Consola {
 
 
     private void init() { // Inicializa el programa
-        java.util.logging.Logger.getLogger("org.hibernate").setLevel(Level.OFF);
+        java.util.logging.Logger.getLogger("org.hibernate").setLevel(Level.OFF); //Desactiva el logging de Hibernate
         literalsHib.initLiteralDB();
         this._session = literalsHib.getLogSession();
         logActivities = new LogActivities(this._session);
-        readConfig();
+        readConfig(); // Lee y aplica el archivo de configuración
         literalsHib.updateResultSet(language);
         setLog(logActive);
         currentDir = new File("");
@@ -45,7 +45,7 @@ public class Consola {
         String comanda = "";
 
         System.err.println("Consola Nikolov v1.0");
-        while (ultimaEntrada != Entrada.TipusEntrada.EXIT) {
+        while (ultimaEntrada != Entrada.TipusEntrada.EXIT) { //Bucle principal del programa
             logActivities.setContLogs(contadorLogs);
             if (contadorLogs >= maxLongitudArrayLogs) {
                 logActivities.writeLogBLOCK();
